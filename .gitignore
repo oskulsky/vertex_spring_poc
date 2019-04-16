@@ -2,3 +2,9 @@ Spring/.vscode/launch.json
 .vscode/launch.json
 .idea
 .vscode
+.DS_Store
+.project
+build
+bin
+.classpath
+.project

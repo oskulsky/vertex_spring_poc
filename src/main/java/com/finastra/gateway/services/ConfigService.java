@@ -46,11 +46,10 @@ public class ConfigService {
         return eventBusAddress;
     }
 
-    @SuppressWarnings("unused")
-    public CommunicationConfig resolveCommunicationType(GatewayMessage message) {
+    public <T extends GatewayMessage> CommunicationConfig resolveCommunicationType(T message) {
         Class<? extends GatewayMessage> cls = message.getClass();
         return Optional.ofNullable(communicationTypeResolver.get(cls))
-                        .orElseThrow(() -> new IllegalArgumentException(cls + " isn't supported on mode " + serviceModes.toString()));
+                .orElseThrow(() -> new IllegalArgumentException(cls + " isn't supported on mode " + serviceModes.toString()));
     }
 
 }

@@ -9,5 +9,11 @@ class Constants {
         const val INGRESS = "ingress"
         const val EGRESS = "egress"
 
+        const val GATEWAY_MESSAGE_CONFIG = "config"
+
+        const val TENANT = "tenant"
+
+        const val AUTHORIZTION = "authorization"
+
     }
 }

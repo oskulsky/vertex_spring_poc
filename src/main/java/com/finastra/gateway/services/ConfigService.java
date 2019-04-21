@@ -6,6 +6,7 @@ import com.finastra.gateway.common.messages.GetAccountRequestMessage;
 import com.finastra.gateway.config.comm.configs.CommunicationConfig;
 import com.finastra.gateway.config.comm.configs.ComplianceValidationConfig;
 import com.finastra.gateway.config.comm.configs.GetAccountConfig;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,21 +25,31 @@ public class ConfigService {
     @Value("${vertx.eventbus.address}")
     private String eventBusAddress;
 
-    private Map<Class<? extends GatewayMessage>, ? extends CommunicationConfig>  communicationTypeResolver;
+    private Map<ConfigKey, ? extends CommunicationConfig> communicationTypeConfigMap;
 
     @PostConstruct
     public void init() {
         serviceModes = Arrays.stream(mode.split(",")).collect(Collectors.toList());
-        initCommunicationTypeResolver();
+        initCommunicationTypeConfigMap();
     }
 
-    private void initCommunicationTypeResolver() {
+    private void initCommunicationTypeConfigMap() {
         // TODO OBY: Make sure only messages that are compatible in launched mode will be filling the map.
-        Map<Class<? extends GatewayMessage>, CommunicationConfig> configs = new HashMap<>();
-        configs.put(GetAccountRequestMessage.class, new GetAccountConfig());
-        configs.put(ComplianceValidationRequestMessage.class, new ComplianceValidationConfig());
 
-        communicationTypeResolver = configs;
+        String tenantId = "Ten-ant";
+
+        Map<ConfigKey, CommunicationConfig> configs = new HashMap<>();
+        addConfigEntry(configs, tenantId, GetAccountRequestMessage.class, new GetAccountConfig());
+        addConfigEntry(configs, tenantId, ComplianceValidationRequestMessage.class, new ComplianceValidationConfig());
+        communicationTypeConfigMap = configs;
+    }
+
+    private <T extends CommunicationConfig> void addConfigEntry(Map<ConfigKey, T> configMap, String tenantId, Class<? extends GatewayMessage> cls, T config) {
+        ConfigKey key = ConfigKey.builder()
+                .msgType(cls)
+                .tenantId(tenantId)
+                .build();
+        configMap.put(key, config);
     }
 
 
@@ -46,10 +57,21 @@ public class ConfigService {
         return eventBusAddress;
     }
 
-    public <T extends GatewayMessage> CommunicationConfig resolveCommunicationType(T message) {
-        Class<? extends GatewayMessage> cls = message.getClass();
-        return Optional.ofNullable(communicationTypeResolver.get(cls))
-                .orElseThrow(() -> new IllegalArgumentException(cls + " isn't supported on mode " + serviceModes.toString()));
+    public <T extends GatewayMessage> CommunicationConfig resolveCommunicationType(String tenantId, T message) {
+        ConfigKey key = ConfigKey.builder()
+                .tenantId(tenantId)
+                .msgType(message.getClass())
+                .build();
+
+        return Optional.ofNullable(communicationTypeConfigMap.get(key))
+                .orElseThrow(() -> new IllegalArgumentException(key + " isn't supported on mode " + serviceModes.toString()));
+    }
+
+    @lombok.Value
+    @Builder
+    static class ConfigKey {
+        private Class<? extends GatewayMessage> msgType;
+        private String tenantId;
     }
 
 }

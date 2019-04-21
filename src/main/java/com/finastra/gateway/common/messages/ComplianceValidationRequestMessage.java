@@ -12,5 +12,4 @@ public class ComplianceValidationRequestMessage implements GatewayMessage {
     String surname;
 
     String id;
-
 }

@@ -39,7 +39,7 @@ public class CamelConfig {
         return servlet;
     }
 
-    @Bean
+    /*@Bean
     public void initRoutes() throws Exception {
         CamelContext context = camelContext();
         context.start();
@@ -49,7 +49,7 @@ public class CamelConfig {
                 from("rest:get:oby").to("log:temp");
             }
         });
-    }
+    }*/
 
     class GatewayMessageConverter extends TypeConverterSupport {
 

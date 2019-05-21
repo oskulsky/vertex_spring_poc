@@ -13,7 +13,6 @@ import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.OutboundMapping;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -53,7 +52,7 @@ public class EgressGateway {
 
     @Bean
     public void egressFlow() throws Exception {
-        val cbo = new CamelBridgeOptions(context)
+        CamelBridgeOptions cbo = new CamelBridgeOptions(context)
                 .addOutboundMapping(OutboundMapping.fromVertx(configService.getEventBusAddress())
                 .toCamel(EGRESS_PROCESS_REQUEST_ADDRESS));
 
@@ -65,6 +64,7 @@ public class EgressGateway {
 
         bridge = CamelBridge.create(vertx, cbo);
         bridge.start();
+        context.start();
     }
 
     @PreDestroy
@@ -97,7 +97,8 @@ public class EgressGateway {
 //                    .process("bean:configService?method=resolveCommunicationType")
                     /*.to("log: build request")
                     .to("log: route to desired channel")
-                    .log("Done processing")*/;
+                    .log("Done processing")*/
+                    .to("direct:REST");
 
             from ("direct:REST")
                     .process(xchg -> {
@@ -107,6 +108,7 @@ public class EgressGateway {
                         msg.setHeader(Exchange.HTTP_QUERY, "param=oby&param2=121");
                     })
                     .to("http4://localhost:8080/oby/trance")
+                    .process(xchg -> System.out.println(xchg.getIn().getBody() + "\n\n\n" + xchg.getOut().getBody()))
                     .to("log:REST");
 
             from ("direct:MQ").to("log:obytrance-MQ");

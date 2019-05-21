@@ -52,7 +52,7 @@ public class Komponenta {
         log.info("Headers: " + msg.headers().toString());
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 1000)
     public void fire() {
         long time = System.currentTimeMillis();
         long num = sumUP(time);
